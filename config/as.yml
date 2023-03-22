@@ -16,9 +16,9 @@ express:
 
 # Configuration of SQLite database
 db:
-  # Source (":memory:" or file e.g. "db.sqlite" for persistence)
-  source: ":memory:"
-
+  # Source (file e.g. "db.sqlite" for persistence)
+  source: "as.sqlite"
+  
 # Configuration of authorisation registry
 ar:
   # Endpoint for token request

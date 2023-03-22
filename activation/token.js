@@ -2,90 +2,84 @@ var debug = require('debug')('as:token');
 const https = require('https');
 const fetch = require('node-fetch');
 
-var database = require('../util/database.js');
+var databaseHelper = require('../util/databaseHelper');
 const config = require('../config.js');
 const error = require('../util/utils.js').error;
-
-const httpsAgent = new https.Agent({
-    rejectUnauthorized: config.ar_ssl,
-});
-
-// Forward token request to AR
-//
-async function forward_token(req, res) {
-    debug('Forward request to /token endpoint of AR');
-    if ( !req.body.client_id) {
-	debug("Missing parameter client_id");
-	error(400, "Missing parameter client_id", res);
-	return null;
-    }
-    let eori = req.body.client_id;
-
-    // Proxy request to AR
-    let token = {};
-    try {
-	const tparams = new URLSearchParams(req.body);
-	const options = {
-            method: 'POST',
-            body: tparams,
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-	}
-	if(config.ar_token.toLowerCase().startsWith("https://")) {
-		options.agent = httpsAgent;
-	}
-	const ar_response = await fetch(config.ar_token, options);
-	const res_body = await ar_response.json();
-	if (ar_response.status != 200) {
-	    debug('Wrong status code in response: %o', res_body);
-	    res.status(ar_response.status).send(res_body);
-	    return null;
-	}
-	if ( !res_body.access_token || !res_body.expires_in) {
-	    debug('Invalid response: %o', res_body);
-	    error(400, "Received invalid response from AR: " + JSON.stringify(res_body), res);
-	    return null;
-	}
-	token = {
-	    eori: eori,
-	    access_token: res_body.access_token,
-	    expires: Date.now() + (1000*res_body.expires_in)
-	};
-	debug('Received response: %o', res_body);
-	return {
-	    token: token,
-	    response: res_body
-	};
-    } catch (e) {
-	console.error(e);
-	let msg = e;
-	if (e.response) {
-	    msg = e.response.text();
-	}
-	error(500, "Error when forwarding request to AR: " + msg, res);
-	return null;
-    }
-}
+const {forwardToken} = require("./tokenHelper");
 
 // Perform token request
 //
-async function performToken(req, res, db) {
+async function performToken(req, res) {
+
+    // Validate client_id
+    if ( !req.body || !req.body.client_id) {
+	let emsg = "Missing parameter client_id";
+	debug(emsg);
+	error(400, emsg, res);
+	return null;
+    }
+
+    // Validate scope
+    if ( !req.body || !req.body.scope) {
+	let emsg = "Missing parameter scope";
+	debug(emsg);
+	error(400, emsg, res);
+	return null;
+    } else if (!req.body.scope.includes("iSHARE")) {
+	let emsg = "Wrong parameter scope: " + req.body.scope + ". MUST include 'iSHARE'";
+	debug(emsg);
+	error(400, emsg, res);
+	return null;
+    }
+
+    // Validate grant_type
+    if ( !req.body || !req.body.grant_type) {
+	let emsg = "Missing parameter grant_type";
+	debug(emsg);
+	error(400, emsg, res);
+	return null;
+    } else if (req.body.grant_type != "client_credentials") {
+	emsg = "Wrong parameter grant_type: " + req.body.grant_type + ". MUST be 'client_credentials'"
+	debug(emsg);
+	error(400, emsg, res);
+	return null;
+    }
+
+    // Validate client_assertion_type
+    if ( !req.body || !req.body.client_assertion_type) {
+	let emsg = "Missing parameter client_assertion_type";
+	debug(emsg);
+	error(400, emsg, res);
+	return null;
+    } else if (req.body.client_assertion_type != "urn:ietf:params:oauth:client-assertion-type:jwt-bearer") {
+	emsg = "Wrong parameter client_assertion_type: " + req.body.client_assertion_type + ". MUST be 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'"
+	debug(emsg);
+	error(400, emsg, res);
+	return null;
+    }
+
+    // Validate client_assertion
+    if ( !req.body || !req.body.client_assertion) {
+	let emsg = "Missing parameter client_assertion";
+	debug(emsg);
+	error(400, emsg, res);
+	return null;
+    }
 
     // Forward token request to AR
-    const token = await forward_token(req, res);
+    const token = await forwardToken(req, res);
     if ( !token ) {
 	return null;
     }
     
     // DB entry insert
-    const ins_err = await database.insertToken(token.token, db);
+    const ins_err = await databaseHelper.insertToken(token.token);
     if (ins_err) {
 	error(500, "Could not insert token into DB: " + ins_err, res);
 	return null;
     }
-
+    
     return token;    
-}
-
-module.exports = {
-    performToken: performToken
 };
+
+module.exports = performToken; 

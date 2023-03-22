@@ -1,4 +1,4 @@
-FROM node:10
+FROM node:14
 
 # User
 RUN groupadd --gid 5000 aservice \

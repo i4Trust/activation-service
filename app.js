@@ -9,8 +9,6 @@ const chain = require('./util/cert.js').chain;
 const performToken = require('./activation/token.js');
 const performCreatePolicy = require('./activation/createPolicy.js');
 
-const test = require('./activation/test');
-
 function createApp() { 
 
     app.use(bodyParser.json());

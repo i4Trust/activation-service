@@ -12,6 +12,7 @@ RUN npm install
 
 # chown
 RUN chown aservice /home/aservice
+RUN chmod a+rw /home/aservice
 USER aservice
 WORKDIR /home/aservice
 RUN npm install

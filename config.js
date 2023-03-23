@@ -5,7 +5,7 @@ const yaml = require('js-yaml');
 var user_cfg = {}
 try {
     let config_file = './config/as.yml';
-    console.log("Loading config: ", config_file);
+    debug("Loading config: %o", config_file);
     let fileContents = fs.readFileSync(config_file, 'utf8');
     user_cfg = yaml.load(fileContents);
 } catch (e) {
@@ -21,7 +21,7 @@ config.crt = "";
 config.id = "EU.EORI.NLPACKETDEL";
 config.port = 7000;
 config.url = "http://localhost:7000";
-config.db_source = ":memory:"; //"db.sqlite";
+config.db_source = "as.sqlite"
 config.ar_token = "http://localhost/connect/token";
 config.ar_policy = "http://localhost/policy";
 config.ar_delegation = "http://localhost/delegation";

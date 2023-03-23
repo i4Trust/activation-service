@@ -11,6 +11,7 @@ on:
 
 env:
   IMAGE_NAME: i4trust/activation-service
+  IMAGE_NAME_QUAY: quay.io/i4trust/activation-service
 
 jobs:
 
@@ -51,10 +52,23 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Build and push snapshot
+      - name: Build snapshot
         run: |
           docker build -t ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} .
+
+      - name: Run tests in built snapshot Docker image
+        run: |
+          docker run --rm ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} npm test
+
+      - name: Push snapshot
+        run: |
           docker push ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+
+      - name: Push to quay.io
+        run: |
+          echo "${{ secrets.QUAY_TOKEN }}" | docker login quay.io -u "${{ secrets.QUAY_USERNAME }}" --password-stdin
+          docker tag ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} ${{ env.IMAGE_NAME_QUAY }}:${{ env.IMAGE_TAG }}
+          docker push ${{ env.IMAGE_NAME_QUAY }}:${{ env.IMAGE_TAG }}
 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:

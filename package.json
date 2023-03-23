@@ -5,21 +5,32 @@
   "main": "server.js",
   "scripts": {
     "start": "node --max-http-header-size=${AS_MAX_HEADER_SIZE:-8192} ./server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha './test/**/*.test.js'",
+    "testSeq": "find ./test -name '*.test.js' -exec ./node_modules/.bin/mocha \\{} \\;"
   },
   "author": "Dr. Dennis Wendland",
   "license": "MIT",
   "dependencies": {
-    "body-parser": "^1.19.0",
-    "debug": "^4.3.1",
-    "express": "^4.17.1",
-    "js-yaml": "^4.0.0",
-    "jsonwebtoken": "^8.5.1",
-    "moment": "^2.29.1",
-    "node-fetch": "^2.6.1",
-    "node-jose": "^2.0.0",
-    "sqlite": "^4.0.19",
-    "sqlite3": "^5.0.2",
+    "body-parser": "^1.20.2",
+    "debug": "^4.3.4",
+    "express": "^4.18.2",
+    "generic-pool": "^3.9.0",
+    "js-yaml": "^4.1.0",
+    "jsonwebtoken": "^9.0.0",
+    "moment": "^2.29.4",
+    "node-fetch": "^2.6.9",
+    "node-jose": "^2.2.0",
+    "sqlite": "^4.1.2",
+    "sqlite3": "^5.1.6",
     "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "decache": "^4.6.1",
+    "faker": "^4.1.0",
+    "mocha": "^10.2.0",
+    "rewire": "^6.0.0",
+    "sinon": "^15.0.2",
+    "supertest": "^6.3.3"
   }
 }

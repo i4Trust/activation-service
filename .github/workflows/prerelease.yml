@@ -66,7 +66,7 @@ jobs:
 
       - name: Push to quay.io
         run: |
-          run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin quay.io
+          run: echo "${{ secrets.QUAY_TOKEN }}" | docker login -u "${{ secrets.QUAY_USERNAME }}" --password-stdin quay.io
           docker tag ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} ${{ env.IMAGE_NAME_QUAY }}:${{ env.IMAGE_TAG }}
           docker push ${{ env.IMAGE_NAME_QUAY }}:${{ env.IMAGE_TAG }}
 

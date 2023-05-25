@@ -37,10 +37,5 @@ def index():
         current_app.logger.debug("Error when inserting token into DB: {}".format(insert_error))
         abort(500, description="Internal server error (DB access)")
 
-    # TEST
-    #from api.util.db_handler import get_token_by_eori
-    #t = get_token_by_eori("EU.EORI.DEMARKETPLACE", current_app)
-    #current_app.logger.info("Get by EORI: {}".format(t))
-    
     return auth_data, 200
     

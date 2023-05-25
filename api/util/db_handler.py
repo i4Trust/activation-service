@@ -6,7 +6,7 @@ def insert_token(token, app):
     app.logger.debug("Inserting token: {}".format(token))
     db = app.config['db']
     try:
-        db.session.add(token)
+        db.session.add(token) #TODO: check for existing token and delete it beforehand?
         db.session.commit()
         return None
     except Exception as error:
@@ -35,7 +35,7 @@ def get_token_by_eori(eori, app):
 
 # Get token by access_token
 def get_token_by_token(token, app):
-    app.logger.debug("Get token by access_token: {}".format(token[:50]))
+    app.logger.debug("Get token by access_token: {}...".format(token[:50]))
     db = app.config['db']
 
     # First clean entries

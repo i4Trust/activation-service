@@ -1,5 +1,4 @@
 import pytest
-#import flask
 from api import app
 from tests.pytest.util.config_handler import load_config
 from api.util.token_handler import forward_token
@@ -56,7 +55,8 @@ def mock_request_missing_client_id(mocker):
 def mock_proxy_request_ok(mocker):
     ar_response = {
         'access_token': ACCESS_TOKEN,
-        'expires_in': 3600
+        'expires_in': 3600,
+        'token_type': "Bearer"
     }
     return mocker.patch('api.util.token_handler.proxy_request', return_value=ar_response)
 

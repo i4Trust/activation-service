@@ -12,7 +12,7 @@ def index():
     
     # Load config
     conf = current_app.config['as']
-
+    
     # Forward token
     response = forward_token(request, current_app, abort)
     auth_data = response.json()
@@ -21,7 +21,7 @@ def index():
         abort(400, description="Received invalid response from AR")
         return None
     
-    # Build Token object and return
+    # Build Token object
     from api.models.token import Token
     client_id = request.form.get('client_id')
     ar_token = Token(
@@ -41,9 +41,6 @@ def index():
     #from api.util.db_handler import get_token_by_eori
     #t = get_token_by_eori("EU.EORI.DEMARKETPLACE", current_app)
     #current_app.logger.info("Get by EORI: {}".format(t))
-        
-    return auth_data, 200
-
     
-
+    return auth_data, 200
     

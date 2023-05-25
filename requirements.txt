@@ -8,3 +8,4 @@ Werkzeug==2.2.1
 pytest==7.1.2
 pytest-testdox==3.0.1
 pytest-mock==3.10.0
+requests-mock==1.10.0

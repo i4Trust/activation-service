@@ -90,22 +90,22 @@ def extract_access_token(request):
     auth_header = request.headers.get('Authorization')
     if not auth_header:
         message = "Missing Authorization header"
-        raise CreatePolicyException(message, 400, message)
+        raise CreatePolicyException(message, None, 400)
 
     # Split Bearer/token
     if not auth_header.startswith("Bearer"):
         message = "Invalid Authorization header"
-        raise CreatePolicyException(message, 400, message)
+        raise CreatePolicyException(message, None, 400)
     split_header = auth_header.split(" ")
     if len(split_header) != 2:
         message = "Invalid Authorization header"
-        raise CreatePolicyException(message, 400, message)
+        raise CreatePolicyException(message, None, 400)
 
     # Token
     token = split_header[1]
     if not token or len(token) < 1:
         message = "Invalid Authorization header"
-        raise CreatePolicyException(message, 400, message)
+        raise CreatePolicyException(message, None, 400)
 
     return token
 
@@ -141,13 +141,13 @@ def get_ar_token(conf):
         internal_message = "Error retrieving token from AR: {}".format(e)
         if response.json():
             internal_message += ", received JSON response: {}".format(response.json())
-        raise CreatePolicyException(message, 400, internal_message)
+        raise CreatePolicyException(message, internal_message, 400)
 
     auth_data = response.json()
     if (not 'access_token' in auth_data) or (not 'expires_in' in auth_data):
         message = "AS received invalid response from AR when obtaining token"
         internal_message = "AS received invalid response from AR when obtaining token: {}".format(auth_data)
-        raise CreatePolicyException(message, 400, internal_message)
+        raise CreatePolicyException(message, internal_message, 400)
 
     return auth_data['access_token']
 
@@ -171,7 +171,7 @@ def check_create_delegation_evidence(conf, eori, access_token):
         internal_message = "Error when querying delegationEvidence at AR: {}".format(e)
         if response.json():
             internal_message += ", received JSON response: {}".format(response.json())
-        raise CreatePolicyException(message, 400, internal_message)
+        raise CreatePolicyException(message, internal_message, 400)
     
     # Check response
     query_data = response.json()
@@ -179,49 +179,49 @@ def check_create_delegation_evidence(conf, eori, access_token):
     if not query_data['delegation_token']:
         message = "Ar was not providing valid response"
         internal_message = message + ": {}".format(query_data)
-        raise CreatePolicyException(message, 400, internal_message)
+        raise CreatePolicyException(message, internal_message, 400)
     
     delegation_token = query_data['delegation_token']
     decoded_token = jwt.decode(delegation_token, options={"verify_signature": False})
     del_ev = decoded_token['delegationEvidence']
     message = "AR did not provide valid delegationEvidence to create policies."
     if not del_ev:
-        raise CreatePolicyException(message, 400, "Missing 'delegationEvidence' object")
+        raise CreatePolicyException(message, "Missing 'delegationEvidence' object", 400)
 
     psets = del_ev['policySets']
     if not psets or len(psets) < 1:
-        raise CreatePolicyException(message, 400, "Missing 'policySets'")
+        raise CreatePolicyException(message, "Missing 'policySets'", 400)
     
     pset = psets[0]
     policies = pset['policies']
     if not policies or len(policies) < 1:
-        raise CreatePolicyException(message, 400, "Missing 'policies'")
+        raise CreatePolicyException(message, "Missing 'policies'", 400)
 
     p = policies[0]
     target = p['target']
     if not target:
-        raise CreatePolicyException(message, 400, "Missing 'target'")
+        raise CreatePolicyException(message, "Missing 'target'", 400)
 
     resource = target['resource']
     if not resource:
-        raise CreatePolicyException(message, 400, "Missing 'resource'")
+        raise CreatePolicyException(message, "Missing 'resource'", 400)
 
     ptype = resource['type']
     if not ptype:
-        raise CreatePolicyException(message, 400, "Missing 'type'")
+        raise CreatePolicyException(message, "Missing 'type'", 400)
     if ptype != "delegationEvidence":
-        raise CreatePolicyException(message, 400, "Wrong type: {} != delegationEvidence".format(ptype))
+        raise CreatePolicyException(message, "Wrong type: {} != delegationEvidence".format(ptype), 400)
 
     rules = p['rules']
     if not rules or len(rules) < 1:
-        raise CreatePolicyException(message, 400, "Missing 'rules'")
+        raise CreatePolicyException(message, "Missing 'rules'", 400)
 
     r = rules[0]
     effect = r['effect']
     if not effect:
-        raise CreatePolicyException(message, 400, "Missing 'effect'")
+        raise CreatePolicyException(message, "Missing 'effect'", 400)
     if effect != "Permit":
-        raise CreatePolicyException(message, 400, "Wrong effect: {} != Permit".format(effect))
+        raise CreatePolicyException(message, "Wrong effect: {} != Permit".format(effect), 400)
 
     return None
 
@@ -232,7 +232,7 @@ def create_delegation_evidence(conf, access_token, request):
     payload = request.json
     if not payload:
         message = "Missing payload in /createpolicy request"
-        raise CreatePolicyException(message, 400, message)
+        raise CreatePolicyException(message, None, 400)
 
     # Create policy at AR
     url = conf['ar']['policy']
@@ -247,7 +247,7 @@ def create_delegation_evidence(conf, access_token, request):
         message = "Policy could not be created at AR: {}".format(e)
         if response.json():
             message += ", received JSON response: {}".format(response.json())
-        raise CreatePolicyException(message, 400, message)
+        raise CreatePolicyException(message, None, 400)
 
     # Check response
     query_data = response.json()

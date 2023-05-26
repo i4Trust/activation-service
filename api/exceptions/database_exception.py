@@ -1,4 +1,4 @@
-class CreatePolicyException(Exception):
+class DatabaseException(Exception):
 
     def __init__(self, message, internal_msg, status_code):
         super().__init__(message)
@@ -9,3 +9,4 @@ class CreatePolicyException(Exception):
 
         if not internal_msg:
             self.internal_msg = message
+

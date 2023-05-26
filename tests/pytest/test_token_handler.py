@@ -3,6 +3,8 @@ from api import app
 from tests.pytest.util.config_handler import load_config
 from api.util.token_handler import forward_token
 
+from api.exceptions.token_exception import TokenException
+
 # Get AS config
 as_config = load_config("tests/config/as.yml", app)
 app.config['as'] = as_config
@@ -34,7 +36,8 @@ def mock_request_ok(mocker):
 @pytest.fixture
 def mock_request_missing_attr(mocker):
     def form_get(attr):
-        raise Exception("Missing attribute")
+        return None
+        #raise TokenException("Missing attribute", "Missing attribute", 400)
     request = mocker.Mock()
     request.form.get.side_effect = form_get
     return request
@@ -42,7 +45,7 @@ def mock_request_missing_attr(mocker):
 @pytest.fixture
 def mock_request_missing_client_id(mocker):
     def form_get(attr):
-        if attr == "client_id": raise Exception("Missing client_id")
+        if attr == "client_id": return None #raise Exception("Missing client_id")
         elif attr == "grant_type": return REQ_FORM['grant_type']
         elif attr == "scope": return REQ_FORM['scope']
         elif attr == "client_assertion_type": return REQ_FORM['client_assertion_type']
@@ -69,7 +72,7 @@ def test_forward_token_ok(mocker, mock_request_ok, mock_proxy_request_ok):
     abort = mocker.Mock()
 
     # Call function
-    response = forward_token(mock_request_ok, app, abort)
+    response = forward_token(mock_request_ok, app)
     
     # Asserts
     mock_proxy_request_ok.assert_called_once()
@@ -86,10 +89,8 @@ def test_forward_token_missing_attr(mocker, mock_request_missing_attr, mock_prox
     abort = mocker.Mock()
 
     # Call function
-    response = forward_token(mock_request_missing_attr, app, abort)
-    
-    # Asserts
-    assert response == None, "should return empty response"
+    with pytest.raises(TokenException, match=r'Missing'):
+        response = forward_token(mock_request_missing_attr, app)
 
 # Test: Missing client_id
 @pytest.mark.failure
@@ -100,7 +101,5 @@ def test_forward_token_missing_client_id(mocker, mock_request_missing_client_id,
     abort = mocker.Mock()
 
     # Call function
-    response = forward_token(mock_request_missing_client_id, app, abort)
-    
-    # Asserts
-    assert response == None, "should return empty response"
+    with pytest.raises(TokenException, match=r'Missing client_id'):
+        response = forward_token(mock_request_missing_client_id, app)

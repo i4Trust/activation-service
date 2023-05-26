@@ -75,14 +75,13 @@ def test_token_ok(client, mock_post_token_ok, clean_db):
     with app.app_context():
         from api.models.token import Token
         db_token = Token.query.filter_by(eori=CLIENT_EORI).first()
-        print(db_token)
         assert db_token.eori == CLIENT_EORI, "DB entry should have correct EORI"
         assert db_token.access_token == ACCESS_TOKEN, "DB entry should have correct access token"
 
 # Test: Failure missing client_id
 @pytest.mark.failure
 @pytest.mark.it('should fail due to missing client_id')
-def test_token_ok(client, mock_post_token_ok, clean_db):
+def test_token_missing_id(client, mock_post_token_ok, clean_db):
 
     # Remove client_id
     form = dict(REQ_FORM)

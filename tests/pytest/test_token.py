@@ -10,12 +10,16 @@ as_config = load_config("tests/config/as.yml", app)
 app.config['as'] = as_config
 
 # Database
-db_conf = as_config['db']
-basedir = os.path.abspath(os.path.dirname(__file__))
-dbpath = os.path.join(basedir, db_conf['useFile'])
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + dbpath
-db = SQLAlchemy(app)
-app.config['db'] = db
+db = None
+if not 'db' in app.config:
+    db_conf = as_config['db']
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    dbpath = os.path.join(basedir, db_conf['useFile'])
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + dbpath
+    db = SQLAlchemy(app)
+    app.config['db'] = db
+else:
+    db = app.config['db']
 
 # Token endpoint
 TOKEN_ENDPOINT = as_config['ar']['token']
@@ -62,7 +66,7 @@ def mock_post_token_ok(requests_mock):
 def test_token_ok(client, mock_post_token_ok, clean_db):
 
     # Invoke request
-    response = client.post(TOKEN_ENDPOINT, data=REQ_FORM)
+    response = client.post("/token", data=REQ_FORM)
     
     # Asserts on response
     assert mock_post_token_ok.called
@@ -88,7 +92,7 @@ def test_token_missing_id(client, mock_post_token_ok, clean_db):
     form.pop('client_id', None)
     
     # Invoke request
-    response = client.post(TOKEN_ENDPOINT, data=form)
+    response = client.post("/token", data=form)
     
     # Asserts on response
     assert response.status_code == 400, "should return code 400"

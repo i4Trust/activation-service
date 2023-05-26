@@ -7,6 +7,7 @@ on:
 
 env:
   IMAGE_NAME: i4trust/activation-service
+  IMAGE_NAME_QUAY: quay.io/i4trust/activation-service
 
 jobs:
 

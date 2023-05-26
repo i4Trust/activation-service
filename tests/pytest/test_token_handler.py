@@ -68,9 +68,6 @@ def mock_proxy_request_ok(mocker):
 @pytest.mark.it('should successfully forward token request')
 def test_forward_token_ok(mocker, mock_request_ok, mock_proxy_request_ok):
 
-    # Mock abort function
-    abort = mocker.Mock()
-
     # Call function
     response = forward_token(mock_request_ok, app)
     
@@ -85,9 +82,6 @@ def test_forward_token_ok(mocker, mock_request_ok, mock_proxy_request_ok):
 @pytest.mark.it('should fail due to missing attr')
 def test_forward_token_missing_attr(mocker, mock_request_missing_attr, mock_proxy_request_ok):
 
-    # Mock abort function
-    abort = mocker.Mock()
-
     # Call function
     with pytest.raises(TokenException, match=r'Missing'):
         response = forward_token(mock_request_missing_attr, app)
@@ -96,9 +90,6 @@ def test_forward_token_missing_attr(mocker, mock_request_missing_attr, mock_prox
 @pytest.mark.failure
 @pytest.mark.it('should fail due to missing client_id')
 def test_forward_token_missing_client_id(mocker, mock_request_missing_client_id, mock_proxy_request_ok):
-
-    # Mock abort function
-    abort = mocker.Mock()
 
     # Call function
     with pytest.raises(TokenException, match=r'Missing client_id'):

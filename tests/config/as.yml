@@ -168,8 +168,12 @@ client:
 
 # Configuration of SQLite database
 db:
-  # Use sqlite file database
-  useFile: "as.db"
+  # Use sqlite file database (make sure that there is write access)
+  useFile:
+    filename: "as.db"
+    filepath: ""
+  # Use sqlite in-memory database
+  #useMemory: true
   # Use URI to external DB (e.g., MySQL, PostgreSQL)
   #useURI: ""
   # Enable tracking of modifications

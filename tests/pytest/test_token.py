@@ -14,7 +14,7 @@ db = None
 if not 'db' in app.config:
     db_conf = as_config['db']
     basedir = os.path.abspath(os.path.dirname(__file__))
-    dbpath = os.path.join(basedir, db_conf['useFile'])
+    dbpath = os.path.join(basedir, db_conf['useFile']['filename'])
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + dbpath
     db = SQLAlchemy(app)
     app.config['db'] = db

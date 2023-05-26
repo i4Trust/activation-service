@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-id
-
 # Port
 AS_PORT="${AS_PORT:-8080}"
 

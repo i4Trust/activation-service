@@ -40,9 +40,14 @@ db_conf = conf['db']
 if os.environ.get('AS_DATABASE_URI'):
     app.logger.info("... taking URI from ENV...")
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('AS_DATABASE_URI')
-elif 'useFile' in db_conf and db_conf['useFile'] and len(db_conf['useFile']) > 0:
+if 'useMemory' in db_conf and db_conf['useMemory']:
+    app.logger.info("... using in-memory SQLite ...")
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://'
+elif 'useFile' in db_conf and db_conf['useFile'] and 'filename' in db_conf['useFile']:
     basedir = os.path.abspath(os.path.dirname(__file__))
-    dbpath = os.path.join(basedir, db_conf['useFile'])
+    if 'filepath' in db_conf['useFile'] and len(db_conf['useFile']['filepath']) > 0:
+        basedir = db_conf['useFile']['filepath']
+    dbpath = os.path.join(basedir, db_conf['useFile']['filename'])
     app.logger.info("... using file-based SQLite (" +  dbpath + ") ...")
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + dbpath
 elif 'useURI' in db_conf and db_conf['useURI'] and len(db_conf['useURI']) > 0:

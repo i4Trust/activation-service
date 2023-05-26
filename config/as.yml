@@ -11,8 +11,14 @@ client:
 
 # Configuration of database
 db:
-  # Use sqlite file database
-  useFile: "as.db"
+  # Use sqlite file database (make sure that the volume is writeable)
+  #useFile:
+  #  # Filename for DB SQLite file
+  #  filename: "as.db"
+  #  # If empty, will use app base path
+  #  filepath: ""
+  # Use sqlite in-memory database
+  useMemory: true
   # Use URI to external DB (e.g., MySQL, PostgreSQL)
   #useURI: ""
   # Enable tracking of modifications

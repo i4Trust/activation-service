@@ -1,6 +1,6 @@
 # Configuration for activation-service application
 
-# Client configuration
+# iSHARE Client configuration
 client:
   # Client ID
   id: "EU.EORI.NLPACKETDEL"
@@ -9,17 +9,24 @@ client:
   # Client certificate (PEM certificate chain)
   crt: <pdc-certs>
 
-# Configuration of express web server
-express:
-  # Port (Internal port of the express web server)
-  port: 7000
-
-# Configuration of SQLite database
+# Configuration of database
 db:
-  # Source (":memory:" or file e.g. "db.sqlite" for persistence)
-  source: ":memory:"
+  # Use sqlite file database (make sure that the volume is writeable)
+  #useFile:
+  #  # Filename for DB SQLite file
+  #  filename: "as.db"
+  #  # If empty, will use app base path
+  #  filepath: ""
+  # Use sqlite in-memory database
+  useMemory: true
+  # Use URI to external DB (e.g., MySQL, PostgreSQL)
+  #useURI: ""
+  # Enable tracking of modifications
+  modTracking: false
+  # Enable SQL logging to stderr
+  echo: true
 
-# Configuration of authorisation registry
+# Configuration of iSHARE authorisation registry
 ar:
   # Endpoint for token request
   token: "https://ar.packetdelivery.net/connect/token"
@@ -29,5 +36,4 @@ ar:
   delegation: "https://ar.packetdelivery.net/delegation"
   # EORI of AR
   id: "EU.EORI.NLPACKETDEL"
-  # Disable SSL verification
-  rejectUnauthorized: false
+

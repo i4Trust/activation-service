@@ -37,3 +37,11 @@ ar:
   # EORI of AR
   id: "EU.EORI.NLPACKETDEL"
 
+# Configuration specific to Trusted Issuer List /issuer endpoint
+issuer:
+  # clientId parameter
+  clientId: "some-id"
+  # Hostname of verifier
+  verifierUri: "https://verifier.packetdelivery.net"
+  # samedevice flow path
+  samedevicePath: "/api/v1/samedevice"

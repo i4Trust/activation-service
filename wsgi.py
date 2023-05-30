@@ -69,7 +69,7 @@ app.logger.info("... database created!")
 with app.app_context():
     app.logger.info("Creating database tables...")
     from api.models import token
-    db.drop_all() # TODO: Make configurable
+    #db.drop_all() # TODO: Make configurable
     db.create_all()
     app.logger.info("... database tables created")
 

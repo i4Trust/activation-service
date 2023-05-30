@@ -38,7 +38,6 @@ def index():
             access_token=auth_data['access_token'],
             expires=int(time.time() * 1000) + (1000*auth_data['expires_in']))
     except Exception as bex:
-        print(bex)
         current_app.logger.error("Internal error when building Token object for DB insert: {}".format(ex))
         abort(500, "Internal error")
     current_app.logger.debug('Received access token with data: {}'.format(ar_token))

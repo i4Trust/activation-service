@@ -35,7 +35,7 @@ gunicorn. This can be done by setting the following ENV (here: max. 32kb):
 
 * `AS_MAX_HEADER_SIZE=32768` (Default: 32768)
 
-WHen using a flie-based SQLite, make sure that the volume is writeable.
+When using a file-based SQLite, make sure that the volume is writeable.
 
 Further ENVs control the execution of the activation service. Below is a list of the supported ENVs:
 

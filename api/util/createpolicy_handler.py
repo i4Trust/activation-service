@@ -7,10 +7,10 @@ from requests.exceptions import HTTPError
 from api.exceptions.create_policy_exception import CreatePolicyException
 
 # ENV for PRIVATE_KEY
-ENV_PRIVATE_KEY = "AS_KEY"
+ENV_PRIVATE_KEY = "AS_CLIENT_KEY"
 
 # ENV for certificate chain
-ENV_CERTIFICATES = "AS_CERTS"
+ENV_CERTIFICATES = "AS_CLIENT_CERTS"
 
 # Obtain private key from yaml or ENV
 def _get_private_key(config):

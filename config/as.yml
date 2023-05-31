@@ -58,3 +58,7 @@ issuer:
   roles:
     # Role for creating trusted issuer
     createRole: "CREATE_ISSUER"
+    # Role for updating trusted issuer
+    updateRole: "UPDATE_ISSUER"
+    # Role for deleting trusted issuer
+    deleteRole: "DELETE_ISSUER"

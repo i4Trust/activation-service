@@ -105,6 +105,7 @@ def decode_token_with_jwk(token, conf):
             }
         )
     except Exception as dex:
+        # TODO: Catch expired token exception and raise it, so that a redirect can be sent back
         message = "Invalid token provided"
         int_msg = message + ": {}".format(dex)
         raise IssuerException(message, int_msg, 401)
@@ -123,7 +124,27 @@ def check_role(credential_roles, required_role, provider_id):
                     return True
 
     return False
-    
+
+# Get the roles from the VC payload
+def get_roles_from_payload(token_payload):
+
+    if not 'verifiableCredential' in token_payload:
+        msg = "No 'verifiableCredential' in JWT"
+        raise IssuerException(msg, None, 400)
+    credential = token_payload['verifiableCredential']
+    if not 'credentialSubject' in credential:
+        msg = "No 'credentialSubject' in verifiableCredential"
+        raise IssuerException(msg, None, 400)
+    subject = credential['credentialSubject']
+    if not 'roles' in subject:
+        msg = "No 'roles' in credentialSubject"
+        raise IssuerException(msg, None, 400)
+    token_roles = subject['roles']
+    if len(token_roles) < 1:
+        msg = "Empty 'roles' in credentialSubject"
+        raise IssuerException(msg, None, 400)
+
+    return token_roles
 
 # Check if credential contains necessary role to create issuer
 def check_create_role(token_payload, conf):
@@ -145,24 +166,60 @@ def check_create_role(token_payload, conf):
     provider_id = conf['issuer']['providerId']
 
     # Get roles from credential payload
-    if not 'verifiableCredential' in token_payload:
-        msg = "No 'verifiableCredential' in JWT"
-        raise IssuerException(msg, None, 400)
-    credential = token_payload['verifiableCredential']
-    if not 'credentialSubject' in credential:
-        msg = "No 'credentialSubject' in verifiableCredential"
-        raise IssuerException(msg, None, 400)
-    subject = credential['credentialSubject']
-    if not 'roles' in subject:
-        msg = "No 'roles' in credentialSubject"
-        raise IssuerException(msg, None, 400)
-    token_roles = subject['roles']
-    if len(token_roles) < 1:
-        msg = "Empty 'roles' in credentialSubject"
-        raise IssuerException(msg, None, 400)
+    token_roles = get_roles_from_payload(token_payload)
 
     # Check for role
     return check_role(token_roles, create_role, provider_id)
+
+# Check if credential contains necessary role to update issuer
+def check_update_role(token_payload, conf):
+
+    # Get required role
+    if not 'issuer' in conf or not 'roles' in conf['issuer']:
+        message = "Missing 'roles' in issuer config"
+        raise IssuerException("Internal server error", message, 500)
+    conf_roles = conf['issuer']['roles']
+    if not 'updateRole' in conf_roles:
+        message = "Missing 'updateRole' in issuer roles config"
+        raise IssuerException("Internal server error", message, 500)
+    update_role = conf_roles['updateRole']
+
+    # Get target DID
+    if not 'providerId' in conf['issuer']:
+        message = "Missing 'providerId' in issuer config"
+        raise IssuerException("Internal server error", message, 500)
+    provider_id = conf['issuer']['providerId']
+
+    # Get roles from credential payload
+    token_roles = get_roles_from_payload(token_payload)
+
+    # Check for role
+    return check_role(token_roles, update_role, provider_id)
+
+# Check if credential contains necessary role to delete issuer
+def check_delete_role(token_payload, conf):
+
+    # Get required role
+    if not 'issuer' in conf or not 'roles' in conf['issuer']:
+        message = "Missing 'roles' in issuer config"
+        raise IssuerException("Internal server error", message, 500)
+    conf_roles = conf['issuer']['roles']
+    if not 'deleteRole' in conf_roles:
+        message = "Missing 'deleteRole' in issuer roles config"
+        raise IssuerException("Internal server error", message, 500)
+    delete_role = conf_roles['deleteRole']
+
+    # Get target DID
+    if not 'providerId' in conf['issuer']:
+        message = "Missing 'providerId' in issuer config"
+        raise IssuerException("Internal server error", message, 500)
+    provider_id = conf['issuer']['providerId']
+
+    # Get roles from credential payload
+    token_roles = get_roles_from_payload(token_payload)
+
+    # Check for role
+    return check_role(token_roles, delete_role, provider_id)
 
 # Forward request to TIL
 def forward_til_request(request, conf):

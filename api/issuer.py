@@ -1,6 +1,7 @@
 from flask import Blueprint, Response, current_app, abort, request, redirect
 from api.util.issuer_handler import extract_access_token, get_samedevice_redirect_url
-from api.util.issuer_handler import decode_token_with_jwk, check_create_role, forward_til_request
+from api.util.issuer_handler import decode_token_with_jwk, forward_til_request
+from api.util.issuer_handler import check_create_role, check_update_role, check_delete_role
 import time
 
 from api.exceptions.issuer_exception import IssuerException
@@ -10,8 +11,7 @@ from api.exceptions.database_exception import DatabaseException
 issuer_endpoint = Blueprint("issuer_endpoint", __name__)
 
 # POST /issuer
-# TODO: Check for PUT to overwrite by DID: https://github.com/FIWARE/trusted-issuers-list/blob/main/api/trusted-issuers-list.yaml#L51
-@issuer_endpoint.route("/issuer", methods = ['POST'])
+@issuer_endpoint.route("/issuer", methods = ['POST','PUT','DELETE'])
 def index():
     current_app.logger.debug('Received request at /issuer endpoint (HTTP Method: {})'.format(request.method))
 
@@ -49,8 +49,9 @@ def index():
         current_app.logger.debug("... validating and decoding JWT using JWKS ...")
         payload = decode_token_with_jwk(request_token, conf)
     except IssuerException as die:
-            current_app.logger.debug("Error when validating/decoding: {}. Returning status {}.".format(die.internal_msg, die.status_code))
-            abort(die.status_code, die.public_msg)
+        # TODO: catch expired token exception, to send redirect as well
+        current_app.logger.debug("Error when validating/decoding: {}. Returning status {}.".format(die.internal_msg, die.status_code))
+        abort(die.status_code, die.public_msg)
     current_app.logger.debug("... decoded token payload: {}".format(payload))
 
     # Check TIL access depending on HTTP method
@@ -67,18 +68,41 @@ def index():
         except IssuerException as cie:
             current_app.logger.debug("Error when checking for required role: {}. Returning status {}.".format(cie.internal_msg, cie.status_code))
             abort(cie.status_code, cie.public_msg)
-        current_app.logger.debug("... access granted!")
         
     elif request.method == 'PUT':
         # PUT: Update issuer flow
+
+        # Check for 'Update Issuer' role
+        try:
+            current_app.logger.debug("... checking for necessary role to update issuer")
+            if not check_update_role(payload, conf):
+                current_app.logger.debug("Required role was not found in JWT credential. Returning status 401.")
+                current_app.logger.debug("... required role '{}' for target DID '{}'".format(conf['issuer']['roles']['updateRole'], conf['issuer']['providerId']))
+                abort(401, "Issued roles do not allow to update an issuer")
+        except IssuerException as pie:
+            current_app.logger.debug("Error when checking for required role: {}. Returning status {}.".format(pie.internal_msg, pie.status_code))
+            abort(pie.status_code, pie.public_msg)
     
-        # TODO: Implement issuer update
-        abort(500, "PUT not implemented")
+    elif request.method == 'DELETE':
+        # DELETE: Delete issuer flow
+
+        # Check for 'Delete Issuer' role
+        try:
+            current_app.logger.debug("... checking for necessary role to delete issuer")
+            if not check_delete_role(payload, conf):
+                current_app.logger.debug("Required role was not found in JWT credential. Returning status 401.")
+                current_app.logger.debug("... required role '{}' for target DID '{}'".format(conf['issuer']['roles']['deleteRole'], conf['issuer']['providerId']))
+                abort(401, "Issued roles do not allow to delete an issuer")
+        except IssuerException as delie:
+            current_app.logger.debug("Error when checking for required role: {}. Returning status {}.".format(delie.internal_msg, delie.status_code))
+            abort(delie.status_code, delie.public_msg)
+    
     else:
         # should not happen
         abort(500, "Invalid HTTP method")
         
     # Forward request to TIL
+    current_app.logger.debug("... access granted!")
     try:
         current_app.logger.debug("... forwarding request to TIL")
         res = forward_til_request(request, conf)

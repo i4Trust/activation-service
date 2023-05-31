@@ -22,11 +22,6 @@ def catch_server_errors(e):
     return "Internal server error", 500
     #abort(500, "Internal server error")
 
-#@app.route('/issuer/<path:path>', methods = ['POST'])
-#def get_dir(path):
-#    app.logger.info(path)
-#    return path
-
 # Register health endpoint
 @app.route("/health")
 def health():

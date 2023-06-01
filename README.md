@@ -1,10 +1,10 @@
 # activation-service
 Service allowing to activate services and create access rights during the acquisition step via:
 * creating policies in an iSHARE authorisation registry 
-* creating entries at a trusted issuer list (TBD)
+* creating entries at a trusted issuer list 
 
 It is based on Python Flask using gunicorn. The service requires to store data in an SQL database. 
-It ca be configured to use external databases (e.g., MySQL, PostgreSQL) or SQLite.
+It can be configured to use external databases (e.g., MySQL, PostgreSQL) or SQLite.
 
 
 ## Preparation
@@ -87,6 +87,7 @@ and [Artifacthub](https://artifacthub.io/packages/helm/i4trust/activation-servic
 * `/health`: Get health output of web server
 * `/token`: Forwards a token request to the `/token` endpoint at the locally configured authorisation registry (iSHARE flow)
 * `/createpolicy`: Activates the service by creating a policy at the locally configured authorisation registry (iSHARE flow)
+* `/issuer`: Activates the service by creating an entry at a trusted issuers list. If no Authorization header is provided, it will return a redirect to the verifier for obtaining a JWT access token (Trusted-Issuers-List flow)
 
 
 ## Extend

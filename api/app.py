@@ -3,6 +3,7 @@ from flask import Flask, Response, jsonify, request
 from .errors import errors
 from .token import token_endpoint
 from .createpolicy import createpolicy_endpoint
+from .issuer import issuer_endpoint
 
 app = Flask(__name__)
 
@@ -12,6 +13,7 @@ app.register_blueprint(errors)
 # Register routes
 app.register_blueprint(createpolicy_endpoint)
 app.register_blueprint(token_endpoint)
+app.register_blueprint(issuer_endpoint)
 
 # Default 500 error handler
 @app.errorhandler(500)

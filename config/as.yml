@@ -37,3 +37,28 @@ ar:
   # EORI of AR
   id: "EU.EORI.NLPACKETDEL"
 
+# Configuration specific to Trusted Issuer List /issuer endpoint
+issuer:
+  # clientId parameter
+  clientId: "some-id"
+  # Provider DID
+  providerId: "did:key:some-key"
+  # URI of Trusted Issuers List service
+  tilUri: "http://til.internal"
+  # URI of verifier
+  verifierUri: "https://verifier.packetdelivery.net"
+  # samedevice flow path
+  samedevicePath: "/api/v1/samedevice"
+  # JWKS path
+  jwksPath: "/.well-known/jwks"
+  # Allowed algorithms for JWT signatures
+  algorithms:
+    - "ES256"
+  # Roles config
+  roles:
+    # Role for creating trusted issuer
+    createRole: "CREATE_ISSUER"
+    # Role for updating trusted issuer
+    updateRole: "UPDATE_ISSUER"
+    # Role for deleting trusted issuer
+    deleteRole: "DELETE_ISSUER"

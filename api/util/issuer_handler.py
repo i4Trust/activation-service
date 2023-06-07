@@ -114,12 +114,12 @@ def decode_token_with_jwk(token, conf):
 
 # Check if credential contains necessary role
 def check_role(credential_roles, required_role, provider_id):
-
+    
     # Loop over credential roles and look for required role
     for r in credential_roles:
         if 'target' in r and r['target'] == provider_id:
-            if 'names' in r['target']:
-                r_names = r['target']['names']
+            if 'names' in r:
+                r_names = r['names']
                 if required_role in r_names:
                     return True
 

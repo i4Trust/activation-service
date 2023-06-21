@@ -10,6 +10,7 @@ from tests.pytest.util.config_handler import load_config
 from api.util.issuer_handler import extract_access_token
 from api.util.issuer_handler import get_samedevice_redirect_url
 from api.util.issuer_handler import decode_token_with_jwk
+from api.util.issuer_handler import check_role
 
 from api.exceptions.issuer_exception import IssuerException
 
@@ -215,3 +216,35 @@ class TestDecodeTokenWithJwk:
         # Asserts
         assert payload['client_id'] == "did:web:packetdelivery.dsba.fiware.dev:did", "should return correct client_id"
         assert payload['verifiableCredential']['issuer'] == "did:web:marketplace.dsba.fiware.dev:did", "should return correct issuer of credential"
+
+# Tests for check_role(credential_roles, required_role, provider_id)
+class TestCheckRole:
+
+    CREDENTIAL_ROLES = [
+        {
+            "names": [
+                "CREATE_ISSUER"
+            ],
+            "target": "did:web:packetdelivery.dsba.fiware.dev:did"
+        }
+    ]
+    
+    @pytest.mark.ok
+    @pytest.mark.it('should successfully find the required role')
+    def test_role_ok(self):
+
+        REQUIRED_ROLE = "CREATE_ISSUER"
+        TARGET_DID = "did:web:packetdelivery.dsba.fiware.dev:did"
+
+        # Call function
+        assert check_role(self.CREDENTIAL_ROLES, REQUIRED_ROLE, TARGET_DID)
+
+    @pytest.mark.failure
+    @pytest.mark.it('should fail finding the required role')
+    def test_role_fail(self):
+
+        REQUIRED_ROLE = "UPDATE_ISSUER"
+        TARGET_DID = "did:web:packetdelivery.dsba.fiware.dev:did"
+
+        # Call function
+        assert not check_role(self.CREDENTIAL_ROLES, REQUIRED_ROLE, TARGET_DID)

@@ -2,10 +2,12 @@ from flask import Blueprint, Response, current_app, abort, request, redirect
 from api.util.issuer_handler import extract_access_token, get_samedevice_redirect_url
 from api.util.issuer_handler import decode_token_with_jwk, forward_til_request
 from api.util.issuer_handler import check_create_role, check_update_role, check_delete_role
+from api.util.apikey_handler import check_api_key
 import time
 
 from api.exceptions.issuer_exception import IssuerException
 from api.exceptions.database_exception import DatabaseException
+from api.exceptions.apikey_exception import ApiKeyException
 
 # Blueprint
 issuer_endpoint = Blueprint("issuer_endpoint", __name__)
@@ -17,6 +19,18 @@ def index():
 
     # Load config
     conf = current_app.config['as']
+
+    # Check for API-Key
+    if 'apikeys' in conf:
+        apikey_conf = conf['apikeys']
+        if 'ishare' in apikey_conf and apikey_conf['issuer']['enabledIssuer']:
+            try:
+                current_app.logger.debug("Checking API-Key...")
+                check_api_key(request, apikey_conf['issuer']['headerName'], apikey_conf['issuer']['apiKey'])
+            except ApiKeyException as ake:
+                current_app.logger.debug("Checking API-Key not successful: {}. Returning status {}.".format(ake.internal_msg, ake.status_code))
+                abort(ake.status_code, ake.public_msg)
+            current_app.logger.debug("... API-Key accepted")
 
     # Check for access token JWT in request header
     request_token = None

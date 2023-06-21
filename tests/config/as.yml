@@ -181,6 +181,27 @@ db:
   # Enable SQL logging to stderr
   echo: false
 
+# Configuration for additional API keys to protect certain endpoints
+apikeys:
+  # Config for iSHARE flow
+  ishare:
+    # Header name
+    headerName: "AS-API-KEY"
+    # API key (auto-generated if left empty)
+    apiKey: "31f5247c-17e5-4969-95f0-928c8ab16504"
+    # Enable for /token endpoint (API key will be required)
+    enabledToken: true
+    # Enable for /createpolicy endpoint (API key will be required)
+    enabledCreatePolicy: false
+  # Config for Trusted-Issuers-List flow
+  issuer:
+    # Header name
+    headerName: "AS-API-KEY"
+    # API key (auto-generated if left empty)
+    apiKey: "eb4675ed-860e-4de1-a9a7-3e2e4356d08d"
+    # Enable for /issuer endpoint (API key will be required)
+    enabledIssuer: true
+
 # Configuration of authorisation registry
 ar:
   # Endpoint for token request
@@ -192,3 +213,28 @@ ar:
   # EORI of AR
   id: "EU.EORI.DEPROVIDER"
 
+# Configuration specific to Trusted Issuer List /issuer endpoint
+issuer:
+  # clientId parameter
+  clientId: "some-id"
+  # Provider DID
+  providerId: "did:key:some-key"
+  # URI of Trusted Issuers List service
+  tilUri: "http://til.internal"
+  # URI of verifier
+  verifierUri: "https://verifier.packetdelivery.net"
+  # samedevice flow path
+  samedevicePath: "/api/v1/samedevice"
+  # JWKS path
+  jwksPath: "/.well-known/jwks"
+  # Allowed algorithms for JWT signatures
+  algorithms:
+    - "ES256"
+  # Roles config
+  roles:
+    # Role for creating trusted issuer
+    createRole: "CREATE_ISSUER"
+    # Role for updating trusted issuer
+    updateRole: "UPDATE_ISSUER"
+    # Role for deleting trusted issuer
+    deleteRole: "DELETE_ISSUER"

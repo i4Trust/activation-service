@@ -10,7 +10,8 @@ from tests.pytest.util.config_handler import load_config
 from api.util.issuer_handler import extract_access_token
 from api.util.issuer_handler import get_samedevice_redirect_url
 from api.util.issuer_handler import decode_token_with_jwk
-from api.util.issuer_handler import check_role
+from api.util.issuer_handler import check_role, get_roles_from_payload
+from api.util.issuer_handler import check_create_role, check_update_role, check_delete_role
 
 from api.exceptions.issuer_exception import IssuerException
 
@@ -38,9 +39,13 @@ JWKS_RESPONSE = {
         }
     ]}
 
-# VP token
+# VC token
 VC_TOKEN = "eyJhbGciOiJFUzI1NiIsImtpZCI6IkhpUzBOWE9tWWtlNmRUTTd3WkdyU3dDRV9WTTBudHFJQk1DcEZGZ0VhT1UiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOlsidmVyaWZpZXItcGRjLmRzYmEuZml3YXJlLmRldiJdLCJjbGllbnRfaWQiOiJkaWQ6d2ViOnBhY2tldGRlbGl2ZXJ5LmRzYmEuZml3YXJlLmRldjpkaWQiLCJleHAiOjE2ODczNDY5OTUsImlzcyI6ImRpZDp3ZWI6cGFja2V0ZGVsaXZlcnkuZHNiYS5maXdhcmUuZGV2OmRpZCIsImtpZCI6IkhpUzBOWE9tWWtlNmRUTTd3WkdyU3dDRV9WTTBudHFJQk1DcEZGZ0VhT1UiLCJzdWIiOiJkaWQ6ZXhhbXBsZTpob2xkZXIiLCJ2ZXJpZmlhYmxlQ3JlZGVudGlhbCI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSIsImh0dHBzOi8vdzNpZC5vcmcvc2VjdXJpdHkvc3VpdGVzL2p3cy0yMDIwL3YxIl0sImNyZWRlbnRpYWxTY2hlbWEiOnsiaWQiOiJodHRwczovL3Jhdy5naXRodWJ1c2VyY29udGVudC5jb20vRklXQVJFLU9wcy9pNHRydXN0LXByb3ZpZGVyL21haW4vZG9jcy9zY2hlbWEuanNvbiIsInR5cGUiOiJGdWxsSnNvblNjaGVtYVZhbGlkYXRvcjIwMjEifSwiY3JlZGVudGlhbFN1YmplY3QiOnsiZW1haWwiOiJtYXJrZXRwbGFjZUBteW1haWwuY29tIiwiaWQiOiIwYjg3NjAwMC0zNmM3LTQ3ZWQtYjg5Ni01YjVlYzE2MzY2M2EiLCJyb2xlcyI6W3sibmFtZXMiOlsiQ1JFQVRFX0lTU1VFUiJdLCJ0YXJnZXQiOiJkaWQ6d2ViOnBhY2tldGRlbGl2ZXJ5LmRzYmEuZml3YXJlLmRldjpkaWQifV19LCJleHBpcmF0aW9uRGF0ZSI6IjIwMzItMTItMDhUMTM6MDU6MDZaIiwiaWQiOiJ1cm46dXVpZDpjN2U3ZDRhMS03NTc5LTQwYTMtYjQxOC01OWY2YTlmMmY2YjEiLCJpc3N1YW5jZURhdGUiOiIyMDIzLTA2LTA3VDA3OjQ1OjA2WiIsImlzc3VlZCI6IjIwMjMtMDYtMDdUMDc6NDU6MDZaIiwiaXNzdWVyIjoiZGlkOndlYjptYXJrZXRwbGFjZS5kc2JhLmZpd2FyZS5kZXY6ZGlkIiwicHJvb2YiOnsiY3JlYXRlZCI6IjIwMjMtMDYtMDdUMDc6NDU6MDZaIiwiY3JlYXRvciI6ImRpZDp3ZWI6bWFya2V0cGxhY2UuZHNiYS5maXdhcmUuZGV2OmRpZCIsImp3cyI6ImV5SmlOalFpT21aaGJITmxMQ0pqY21sMElqcGJJbUkyTkNKZExDSmhiR2NpT2lKUVV6STFOaUo5Li5UaFNKVjR2VmhseFlVM043T1NrNi10bkt2ZEFDZlk5bWhScUNWSWYwZUxDQ1Nia0V5WVY0c2V2ZDdBQy1IR1lKMktXbU15SlRtLS1nTm9ndDVJdVRhYTUtb1RlZ1lCVHlSSWNfdGhaZ3hKNDRfN1dmcE8td0FZNHV5dUt6dC1UWVZoUVNXUTVsQV9DcFQ5bUw3Mk5BR1A0dm5Ob1Z2U2tYaElDQl9nN2EyS3FsNHhzUi13WjZodFY4VzRiZURldmh1M2FqTy1RNjVLWFFQWndJbm9VcFdoMXJjckVpeVJKejlwSTMxNDZkNzZpa2pMRGUwclFTTU1rbTBiRFE4Nm9zbmN1Ry1IWUlid1ZGOXhLaWViNldfTXVwbVdhWlJVbnZld2ptMV9aUUNGckt3M1VDTDZKZVNoZG83TEpwTV9iUmtYY0lORVBYQldKcDc3NHl2MWl5aUEiLCJ0eXBlIjoiSnNvbldlYlNpZ25hdHVyZTIwMjAiLCJ2ZXJpZmljYXRpb25NZXRob2QiOiJkaWQ6d2ViOm1hcmtldHBsYWNlLmRzYmEuZml3YXJlLmRldjpkaWQjNmY0YzEyNTVmNGE1NDA5MGJjOGZmNzM2NWIxM2E5YjcifSwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIkFjdGl2YXRpb25TZXJ2aWNlIl0sInZhbGlkRnJvbSI6IjIwMjMtMDYtMDdUMDc6NDU6MDZaIn19.a5aFIrDK3P2FJv-Pk3EI7Jn06tZ9RN5JwV8LmLTvXMNG8vVXwXWVUUkahzTB8fqNHeR4RNP3W80O1GSy3JzpGw"
-#VP_TOKEN = "ewogICJ0eXBlIiA6IFsgIlZlcmlmaWFibGVDcmVkZW50aWFsIiwgIkFjdGl2YXRpb25TZXJ2aWNlIiBdLAogICJAY29udGV4dCIgOiBbICJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSIsICJodHRwczovL3czaWQub3JnL3NlY3VyaXR5L3N1aXRlcy9qd3MtMjAyMC92MSIgXSwKICAiaWQiIDogInVybjp1dWlkOmM3ZTdkNGExLTc1NzktNDBhMy1iNDE4LTU5ZjZhOWYyZjZiMSIsCiAgImlzc3VlciIgOiAiZGlkOndlYjptYXJrZXRwbGFjZS5kc2JhLmZpd2FyZS5kZXY6ZGlkIiwKICAiaXNzdWFuY2VEYXRlIiA6ICIyMDIzLTA2LTA3VDA3OjQ1OjA2WiIsCiAgImlzc3VlZCIgOiAiMjAyMy0wNi0wN1QwNzo0NTowNloiLAogICJ2YWxpZEZyb20iIDogIjIwMjMtMDYtMDdUMDc6NDU6MDZaIiwKICAiZXhwaXJhdGlvbkRhdGUiIDogIjIwMzItMTItMDhUMTM6MDU6MDZaIiwKICAiY3JlZGVudGlhbFNjaGVtYSIgOiB7CiAgICAiaWQiIDogImh0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9GSVdBUkUtT3BzL2k0dHJ1c3QtcHJvdmlkZXIvbWFpbi9kb2NzL3NjaGVtYS5qc29uIiwKICAgICJ0eXBlIiA6ICJGdWxsSnNvblNjaGVtYVZhbGlkYXRvcjIwMjEiCiAgfSwKICAiY3JlZGVudGlhbFN1YmplY3QiIDogewogICAgImlkIiA6ICIwYjg3NjAwMC0zNmM3LTQ3ZWQtYjg5Ni01YjVlYzE2MzY2M2EiLAogICAgInJvbGVzIiA6IFsgewogICAgICAibmFtZXMiIDogWyAiQ1JFQVRFX0lTU1VFUiIgXSwKICAgICAgInRhcmdldCIgOiAiZGlkOndlYjpwYWNrZXRkZWxpdmVyeS5kc2JhLmZpd2FyZS5kZXY6ZGlkIgogICAgfSBdLAogICAgImVtYWlsIiA6ICJtYXJrZXRwbGFjZUBteW1haWwuY29tIgogIH0sCiAgInByb29mIiA6IHsKICAgICJ0eXBlIiA6ICJKc29uV2ViU2lnbmF0dXJlMjAyMCIsCiAgICAiY3JlYXRvciIgOiAiZGlkOndlYjptYXJrZXRwbGFjZS5kc2JhLmZpd2FyZS5kZXY6ZGlkIiwKICAgICJjcmVhdGVkIiA6ICIyMDIzLTA2LTA3VDA3OjQ1OjA2WiIsCiAgICAidmVyaWZpY2F0aW9uTWV0aG9kIiA6ICJkaWQ6d2ViOm1hcmtldHBsYWNlLmRzYmEuZml3YXJlLmRldjpkaWQjNmY0YzEyNTVmNGE1NDA5MGJjOGZmNzM2NWIxM2E5YjciLAogICAgImp3cyIgOiAiZXlKaU5qUWlPbVpoYkhObExDSmpjbWwwSWpwYkltSTJOQ0pkTENKaGJHY2lPaUpRVXpJMU5pSjkuLlRoU0pWNHZWaGx4WVUzTjdPU2s2LXRuS3ZkQUNmWTltaFJxQ1ZJZjBlTENDU2JrRXlZVjRzZXZkN0FDLUhHWUoyS1dtTXlKVG0tLWdOb2d0NUl1VGFhNS1vVGVnWUJUeVJJY190aFpneEo0NF83V2ZwTy13QVk0dXl1S3p0LVRZVmhRU1dRNWxBX0NwVDltTDcyTkFHUDR2bk5vVnZTa1hoSUNCX2c3YTJLcWw0eHNSLXdaNmh0VjhXNGJlRGV2aHUzYWpPLVE2NUtYUVBad0lub1VwV2gxcmNyRWl5Ukp6OXBJMzE0NmQ3NmlrakxEZTByUVNNTWttMGJEUTg2b3NuY3VHLUhZSWJ3VkY5eEtpZWI2V19NdXBtV2FaUlVudmV3am0xX1pRQ0ZyS3czVUNMNkplU2hkbzdMSnBNX2JSa1hjSU5FUFhCV0pwNzc0eXYxaXlpQSIKICB9Cn0="
+
+# Encoded VP token
+VP_TOKEN_ENCODED = "ewogICJ0eXBlIiA6IFsgIlZlcmlmaWFibGVDcmVkZW50aWFsIiwgIkFjdGl2YXRpb25TZXJ2aWNlIiBdLAogICJAY29udGV4dCIgOiBbICJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSIsICJodHRwczovL3czaWQub3JnL3NlY3VyaXR5L3N1aXRlcy9qd3MtMjAyMC92MSIgXSwKICAiaWQiIDogInVybjp1dWlkOmM3ZTdkNGExLTc1NzktNDBhMy1iNDE4LTU5ZjZhOWYyZjZiMSIsCiAgImlzc3VlciIgOiAiZGlkOndlYjptYXJrZXRwbGFjZS5kc2JhLmZpd2FyZS5kZXY6ZGlkIiwKICAiaXNzdWFuY2VEYXRlIiA6ICIyMDIzLTA2LTA3VDA3OjQ1OjA2WiIsCiAgImlzc3VlZCIgOiAiMjAyMy0wNi0wN1QwNzo0NTowNloiLAogICJ2YWxpZEZyb20iIDogIjIwMjMtMDYtMDdUMDc6NDU6MDZaIiwKICAiZXhwaXJhdGlvbkRhdGUiIDogIjIwMzItMTItMDhUMTM6MDU6MDZaIiwKICAiY3JlZGVudGlhbFNjaGVtYSIgOiB7CiAgICAiaWQiIDogImh0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9GSVdBUkUtT3BzL2k0dHJ1c3QtcHJvdmlkZXIvbWFpbi9kb2NzL3NjaGVtYS5qc29uIiwKICAgICJ0eXBlIiA6ICJGdWxsSnNvblNjaGVtYVZhbGlkYXRvcjIwMjEiCiAgfSwKICAiY3JlZGVudGlhbFN1YmplY3QiIDogewogICAgImlkIiA6ICIwYjg3NjAwMC0zNmM3LTQ3ZWQtYjg5Ni01YjVlYzE2MzY2M2EiLAogICAgInJvbGVzIiA6IFsgewogICAgICAibmFtZXMiIDogWyAiQ1JFQVRFX0lTU1VFUiIgXSwKICAgICAgInRhcmdldCIgOiAiZGlkOndlYjpwYWNrZXRkZWxpdmVyeS5kc2JhLmZpd2FyZS5kZXY6ZGlkIgogICAgfSBdLAogICAgImVtYWlsIiA6ICJtYXJrZXRwbGFjZUBteW1haWwuY29tIgogIH0sCiAgInByb29mIiA6IHsKICAgICJ0eXBlIiA6ICJKc29uV2ViU2lnbmF0dXJlMjAyMCIsCiAgICAiY3JlYXRvciIgOiAiZGlkOndlYjptYXJrZXRwbGFjZS5kc2JhLmZpd2FyZS5kZXY6ZGlkIiwKICAgICJjcmVhdGVkIiA6ICIyMDIzLTA2LTA3VDA3OjQ1OjA2WiIsCiAgICAidmVyaWZpY2F0aW9uTWV0aG9kIiA6ICJkaWQ6d2ViOm1hcmtldHBsYWNlLmRzYmEuZml3YXJlLmRldjpkaWQjNmY0YzEyNTVmNGE1NDA5MGJjOGZmNzM2NWIxM2E5YjciLAogICAgImp3cyIgOiAiZXlKaU5qUWlPbVpoYkhObExDSmpjbWwwSWpwYkltSTJOQ0pkTENKaGJHY2lPaUpRVXpJMU5pSjkuLlRoU0pWNHZWaGx4WVUzTjdPU2s2LXRuS3ZkQUNmWTltaFJxQ1ZJZjBlTENDU2JrRXlZVjRzZXZkN0FDLUhHWUoyS1dtTXlKVG0tLWdOb2d0NUl1VGFhNS1vVGVnWUJUeVJJY190aFpneEo0NF83V2ZwTy13QVk0dXl1S3p0LVRZVmhRU1dRNWxBX0NwVDltTDcyTkFHUDR2bk5vVnZTa1hoSUNCX2c3YTJLcWw0eHNSLXdaNmh0VjhXNGJlRGV2aHUzYWpPLVE2NUtYUVBad0lub1VwV2gxcmNyRWl5Ukp6OXBJMzE0NmQ3NmlrakxEZTByUVNNTWttMGJEUTg2b3NuY3VHLUhZSWJ3VkY5eEtpZWI2V19NdXBtV2FaUlVudmV3am0xX1pRQ0ZyS3czVUNMNkplU2hkbzdMSnBNX2JSa1hjSU5FUFhCV0pwNzc0eXYxaXlpQSIKICB9Cn0="
+
+# Decoded VP token
 VP_TOKEN = {
     "aud": [
         "verifier-pdc.dsba.fiware.dev"
@@ -66,6 +71,18 @@ VP_TOKEN = {
                 {
                     "names": [
                         "CREATE_ISSUER"
+                    ],
+                    "target": "did:web:packetdelivery.dsba.fiware.dev:did"
+                },
+                {
+                    "names": [
+                        "UPDATE_ISSUER"
+                    ],
+                    "target": "did:web:packetdelivery.dsba.fiware.dev:did"
+                },
+                {
+                    "names": [
+                        "DELETE_ISSUER"
                     ],
                     "target": "did:web:packetdelivery.dsba.fiware.dev:did"
                 }
@@ -243,8 +260,108 @@ class TestCheckRole:
     @pytest.mark.it('should fail finding the required role')
     def test_role_fail(self):
 
-        REQUIRED_ROLE = "UPDATE_ISSUER"
+        REQUIRED_ROLE = "READ_ISSUER"
         TARGET_DID = "did:web:packetdelivery.dsba.fiware.dev:did"
 
         # Call function
         assert not check_role(self.CREDENTIAL_ROLES, REQUIRED_ROLE, TARGET_DID)
+
+# Tests for get_roles_from_payload(token_payload)
+class TestGetRolesFromPayload:
+
+    @pytest.mark.ok
+    @pytest.mark.it('should successfully get the roles from the VP token payload')
+    def test_role_ok(self):
+
+        REQUIRED_ROLE = "CREATE_ISSUER"
+
+        # Call function
+        roles = get_roles_from_payload(VP_TOKEN)
+        
+        assert len(roles) > 0, "should not be empty"
+        assert roles[0]['names'][0] == REQUIRED_ROLE, "should contain correct role"
+
+# Tests for check_create_role(token_payload, conf)
+class TestCheckCreateRole:
+
+    @pytest.mark.ok
+    @pytest.mark.it('should successfully check for the CREATE role in the VP token payload')
+    def test_role_ok(self):
+
+        # Call function
+        assert check_create_role(VP_TOKEN, as_config), "should return True"
+
+    @pytest.mark.failure
+    @pytest.mark.it('should fail checking for the CREATE role')
+    def test_role_fail(self):
+
+        # Prepare payload
+        payload = copy.deepcopy(VP_TOKEN)
+        payload['verifiableCredential']['credentialSubject']['roles'] = [
+            {
+                "names": [
+                    "UPDATE_ISSUER"
+                ],
+                "target": "did:web:packetdelivery.dsba.fiware.dev:did"
+            }
+        ]
+        
+        # Call function
+        assert not check_create_role(payload, as_config), "should return False"
+        
+
+# Tests for check_update_role(token_payload, conf)
+class TestCheckUpdateRole:
+
+    @pytest.mark.ok
+    @pytest.mark.it('should successfully check for the UPDATE role in the VP token payload')
+    def test_role_ok(self):
+
+        # Call function
+        assert check_update_role(VP_TOKEN, as_config), "should return True"
+
+    @pytest.mark.failure
+    @pytest.mark.it('should fail checking for the UPDATE role')
+    def test_role_fail(self):
+
+        # Prepare payload
+        payload = copy.deepcopy(VP_TOKEN)
+        payload['verifiableCredential']['credentialSubject']['roles'] = [
+            {
+                "names": [
+                    "CREATE_ISSUER"
+                ],
+                "target": "did:web:packetdelivery.dsba.fiware.dev:did"
+            }
+        ]
+        
+        # Call function
+        assert not check_update_role(payload, as_config), "should return False"
+
+# Tests for check_delete_role(token_payload, conf)
+class TestCheckDeleteRole:
+
+    @pytest.mark.ok
+    @pytest.mark.it('should successfully check for the DELETE role in the VP token payload')
+    def test_role_ok(self):
+
+        # Call function
+        assert check_delete_role(VP_TOKEN, as_config), "should return True"
+
+    @pytest.mark.failure
+    @pytest.mark.it('should fail checking for the DELETE role')
+    def test_role_fail(self):
+
+        # Prepare payload
+        payload = copy.deepcopy(VP_TOKEN)
+        payload['verifiableCredential']['credentialSubject']['roles'] = [
+            {
+                "names": [
+                    "UPDATE_ISSUER"
+                ],
+                "target": "did:web:packetdelivery.dsba.fiware.dev:did"
+            }
+        ]
+        
+        # Call function
+        assert not check_delete_role(payload, as_config), "should return False"

@@ -218,7 +218,7 @@ issuer:
   # clientId parameter
   clientId: "some-id"
   # Provider DID
-  providerId: "did:key:some-key"
+  providerId: "did:web:packetdelivery.dsba.fiware.dev:did"
   # URI of Trusted Issuers List service
   tilUri: "http://til.internal"
   # URI of verifier

@@ -12,6 +12,7 @@ from api.util.issuer_handler import get_samedevice_redirect_url
 from api.util.issuer_handler import decode_token_with_jwk
 from api.util.issuer_handler import check_role, get_roles_from_payload
 from api.util.issuer_handler import check_create_role, check_update_role, check_delete_role
+from api.util.issuer_handler import forward_til_request
 
 from api.exceptions.issuer_exception import IssuerException
 
@@ -21,6 +22,11 @@ app.config['as'] = as_config
 
 # Dummy access token
 ACCESS_TOKEN = 'gfgarhgrfha'
+
+# Endpoint of /issuer
+ISSUER_ENDPOINT = "{}/issuer".format(as_config['issuer']['tilUri'])
+AS_HOST = "https://as.packetdelivery.com/"
+AS_ENDPOINT = "https://as.packetdelivery.com/issuer"
 
 # JWKS endpoint
 verifier_uri = as_config['issuer']['verifierUri']
@@ -106,6 +112,25 @@ VP_TOKEN = {
         ],
         "validFrom": "2023-06-07T07:45:06Z"
     }
+}
+
+TEMPLATE_ISSUER = {
+    "did": "did:web:happypets.dsba.fiware.dev:did",
+    "credentials": [
+        {
+            "validFor": {
+                "from": '2023-02-13T08:15:30Z',
+                "to": '2023-12-24T20:10:40Z'
+            },
+            "credentialsType": "PacketDeliveryService",
+            "claims": [
+                {
+                    "name": "roles",
+                    "allowedValues": ["GOLD_CUSTOMER", "STANDARD_CUSTOMER"]
+                }
+            ]
+        }
+    ]
 }
 
 # Tests for function extract_access_token(request)
@@ -365,3 +390,43 @@ class TestCheckDeleteRole:
         
         # Call function
         assert not check_delete_role(payload, as_config), "should return False"
+
+# Tests for forward_til_request(request, conf)
+class TestForwardTilRequest:
+
+    @pytest.fixture
+    def mock_request_ok(self, mocker):
+        def data_get():
+            return TEMPLATE_ISSUER
+
+        headers = [{
+            "AS-API-KEY": "eb4675ed-860e-4de1-a9a7-3e2e4356d08d",
+            "Authorization": ACCESS_TOKEN
+        }]
+        cookies = []
+        
+        request = mocker.Mock()
+        request.json = TEMPLATE_ISSUER
+        request.get_data.side_effect = data_get
+        request.headers = headers
+        request.cookies = cookies
+        request.method = "POST"
+        request.url = AS_ENDPOINT #ISSUER_ENDPOINT
+        request.host_url = AS_HOST #ISSUER_HOST
+        return request
+
+    @pytest.fixture
+    def mock_post_issuer_empty_response(self, requests_mock):
+        return requests_mock.post(ISSUER_ENDPOINT,
+                                  json={ },
+                                  status_code=201)
+
+    @pytest.mark.ok
+    @pytest.mark.it('should successfully forward the POST request')
+    def test_post_issuer_ok(self, mock_request_ok, mock_post_issuer_empty_response):
+
+        # Call function
+        response = forward_til_request(mock_request_ok, as_config)
+
+        # Asserts on response
+        assert response.status_code == 201, "should return status code 201"

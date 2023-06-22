@@ -26,6 +26,27 @@ db:
   # Enable SQL logging to stderr
   echo: true
 
+# Configuration for additional API keys to protect certain endpoints
+apikeys:
+  # Config for iSHARE flow
+  ishare:
+    # Header name
+    headerName: "AS-API-KEY"
+    # API key (auto-generated if left empty)
+    apiKey: ""
+    # Enable for /token endpoint (API key will be required)
+    enabledToken: true
+    # Enable for /createpolicy endpoint (API key will be required)
+    enabledCreatePolicy: false
+  # Config for Trusted-Issuers-List flow
+  issuer:
+    # Header name
+    headerName: "AS-API-KEY"
+    # API key (auto-generated if left empty)
+    apiKey: ""
+    # Enable for /issuer endpoint (API key will be required)
+    enabledIssuer: true
+  
 # Configuration of iSHARE authorisation registry
 ar:
   # Endpoint for token request

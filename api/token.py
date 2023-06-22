@@ -1,9 +1,11 @@
 from flask import Blueprint, Response, current_app, abort, request
 from api.util.token_handler import forward_token
+from api.util.apikey_handler import check_api_key
 import time
 
 from api.exceptions.token_exception import TokenException
 from api.exceptions.database_exception import DatabaseException
+from api.exceptions.apikey_exception import ApiKeyException
 
 # Blueprint
 token_endpoint = Blueprint("token_endpoint", __name__)
@@ -15,6 +17,18 @@ def index():
     
     # Load config
     conf = current_app.config['as']
+
+    # Check for API-Key
+    if 'apikeys' in conf:
+        apikey_conf = conf['apikeys']
+        if 'ishare' in apikey_conf and apikey_conf['ishare']['enabledToken']:
+            try:
+                current_app.logger.debug("Checking API-Key...")
+                check_api_key(request, apikey_conf['ishare']['headerName'], apikey_conf['ishare']['apiKey'])
+            except ApiKeyException as ake:
+                current_app.logger.debug("Checking API-Key not successful: {}. Returning status {}.".format(ake.internal_msg, ake.status_code))
+                abort(ake.status_code, ake.public_msg)
+            current_app.logger.debug("... API-Key accepted")
     
     # Forward token
     auth_data = None

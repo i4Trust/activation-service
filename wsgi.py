@@ -59,7 +59,7 @@ if 'apikeys' in conf:
         if 'apiKey' not in apikey_conf['issuer'] or len(apikey_conf['issuer']['apiKey']) < 1:
             if os.environ.get('AS_APIKEY_ISSUER'):
                 app.logger.info("... ... no API-Key provided in config, using API-Key from ENV ...")
-                apikey_conf['ishare']['apiKey'] = os.environ.get('AS_APIKEY_ISSUER')
+                apikey_conf['issuer']['apiKey'] = os.environ.get('AS_APIKEY_ISSUER')
             else:
                 app.logger.info("... ... no API-Key provided, generating random API-Key ...")
                 apikey_conf['issuer']['apiKey'] = str(uuid.uuid4())

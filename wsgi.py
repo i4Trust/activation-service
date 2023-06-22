@@ -41,8 +41,13 @@ if 'apikeys' in conf:
     if apikey_conf['ishare'] and (apikey_conf['ishare']['enabledToken'] or apikey_conf['ishare']['enabledCreatePolicy']):
         app.logger.info("... enabled for iSHARE flows ...")
         if 'apiKey' not in apikey_conf['ishare'] or len(apikey_conf['ishare']['apiKey']) < 1:
-            app.logger.info("... ... no API-Key provided, generating random API-Key ...")
-            apikey_conf['ishare']['apiKey'] = str(uuid.uuid4())
+            # Check for ENV
+            if os.environ.get('AS_APIKEY_ISHARE'):
+                app.logger.info("... ... no API-Key provided in config, using API-Key from ENV ...")
+                apikey_conf['ishare']['apiKey'] = os.environ.get('AS_APIKEY_ISHARE')
+            else:
+                app.logger.info("... ... no API-Key provided, generating random API-Key ...")
+                apikey_conf['ishare']['apiKey'] = str(uuid.uuid4())
         if apikey_conf['ishare']['enabledToken']:
             app.logger.info("... ... requiring API-Key in Header '{}' for /token endpoint: {}".format(apikey_conf['ishare']['headerName'], apikey_conf['ishare']['apiKey']))
         if apikey_conf['ishare']['enabledCreatePolicy']:
@@ -52,8 +57,12 @@ if 'apikeys' in conf:
     if apikey_conf['issuer'] and apikey_conf['issuer']['enabledIssuer']:
         app.logger.info("... enabled for Trusted-Issuers-List flow ...")
         if 'apiKey' not in apikey_conf['issuer'] or len(apikey_conf['issuer']['apiKey']) < 1:
-            app.logger.info("... ... no API-Key provided, generating random API-Key ...")
-            apikey_conf['issuer']['apiKey'] = str(uuid.uuid4())
+            if os.environ.get('AS_APIKEY_ISSUER'):
+                app.logger.info("... ... no API-Key provided in config, using API-Key from ENV ...")
+                apikey_conf['ishare']['apiKey'] = os.environ.get('AS_APIKEY_ISSUER')
+            else:
+                app.logger.info("... ... no API-Key provided, generating random API-Key ...")
+                apikey_conf['issuer']['apiKey'] = str(uuid.uuid4())
         app.logger.info("... ... requiring API-Key in Header '{}' for /issuer endpoint: {}".format(apikey_conf['issuer']['headerName'], apikey_conf['issuer']['apiKey']))
             
 else:

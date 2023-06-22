@@ -46,8 +46,10 @@ Further ENVs control the execution of the activation service. Below is a list of
 | AS_MAX_HEADER_SIZE              | 32768        | Maximum header size in bytes |
 | AS_LOG_LEVEL                    | 'info'       | Log level |
 | AS_DATABASE_URI                 |              | Database URI to use instead of config from configuration file |
-| AS_CLIENT_KEY                          |              | iSHARE private key provided as ENV (compare to [config/as.yml](./config/as.yml#L8)) |
-| AS_CLIENT_CERTS                        |              | iSHARE certificate chain provided as ENV (compare to [config/as.yml](./config/as.yml#L10)) |
+| AS_CLIENT_KEY                   |              | iSHARE private key provided as ENV (compare to [config/as.yml](./config/as.yml#L8)) |
+| AS_CLIENT_CERTS                 |              | iSHARE certificate chain provided as ENV (compare to [config/as.yml](./config/as.yml#L10)) |
+| AS_APIKEY_ISHARE                |              | API-Key for iSHARE flow provided as ENV (compare to [config/as.yml](./config/as.yml#L36)) |
+| AS_APIKEY_ISSUER                |              | API-Key for Trusted-Issuers-List flow provided as ENV (compare to [config/as.yml](./config/as.yml#L46)) |
 
 
 ## Usage

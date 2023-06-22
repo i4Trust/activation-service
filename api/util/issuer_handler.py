@@ -234,7 +234,7 @@ def forward_til_request(request, conf):
     headers = {k:v for k,v in request.headers if k != "Authorization" and k.lower() != 'host'}
     url = request.url.replace(request.host_url, f'{til_uri}/')
     data = request.get_data()
-    
+
     # Forward request
     response = requests.request(
         method          = request.method,

@@ -40,6 +40,9 @@ ACCESS_TOKEN = 'gfgarhgrfha'
 # Client EORI
 CLIENT_EORI = 'EU.EORI.DEMARKETPLACE'
 
+# Valid API-Key
+VALID_API_KEY = "31f5247c-17e5-4969-95f0-928c8ab16504"
+
 # Form parameters
 REQ_FORM = {
     'client_id': CLIENT_EORI,
@@ -162,7 +165,10 @@ def mock_post_policy_ok(requests_mock):
 def test_policy_flow_ok(client, mock_post_token_ok, mock_post_delegation_ok, mock_post_policy_ok, clean_db):
 
     # Invoke request for /token
-    response = client.post(TOKEN_ENDPOINT, data=REQ_FORM)
+    response = client.post(TOKEN_ENDPOINT, data=REQ_FORM,
+                           headers={
+                               'AS-API-KEY': VALID_API_KEY
+                           })
     
     # Asserts on response
     assert mock_post_token_ok.called

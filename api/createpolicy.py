@@ -1,9 +1,11 @@
 from flask import Blueprint, Response, current_app, abort, request
 
 from api.util.createpolicy_handler import extract_access_token, get_ar_token, check_create_delegation_evidence, create_delegation_evidence
+from api.util.apikey_handler import check_api_key
 
 from api.exceptions.create_policy_exception import CreatePolicyException
 from api.exceptions.database_exception import DatabaseException
+from api.exceptions.apikey_exception import ApiKeyException
 
 # Blueprint
 createpolicy_endpoint = Blueprint("createpolicy_endpoint", __name__)
@@ -15,6 +17,18 @@ def index():
     
     # Load config
     conf = current_app.config['as']
+
+    # Check for API-Key
+    if 'apikeys' in conf:
+        apikey_conf = conf['apikeys']
+        if 'ishare' in apikey_conf and apikey_conf['ishare']['enabledCreatePolicy']:
+            try:
+                current_app.logger.debug("Checking API-Key...")
+                check_api_key(request, apikey_conf['ishare']['headerName'], apikey_conf['ishare']['apiKey'])
+            except ApiKeyException as ake:
+                current_app.logger.debug("Checking API-Key not successful: {}. Returning status {}.".format(ake.internal_msg, ake.status_code))
+                abort(ake.status_code, ake.public_msg)
+            current_app.logger.debug("... API-Key accepted")
 
     # Get access token from request header
     token = None

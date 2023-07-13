@@ -236,13 +236,18 @@ def forward_til_request(request, conf):
     data = request.get_data()
 
     # Forward request
-    response = requests.request(
-        method          = request.method,
-        url             = url,
-        headers         = headers,
-        data            = data,
-        cookies         = request.cookies,
-        allow_redirects = False,
-    )
+    try:
+        response = requests.request(
+            method          = request.method,
+            url             = url,
+            headers         = headers,
+            data            = data,
+            cookies         = request.cookies,
+            allow_redirects = False,
+        )
+    except Exception as ftrex:
+        message = "Internal server error when forwarding request to TIL"
+        int_msg = "{}".format(ftrex)
+        raise IssuerException(message, int_msg, 500)
 
     return response

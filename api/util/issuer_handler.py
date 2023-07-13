@@ -246,8 +246,8 @@ def forward_til_request(request, conf):
             allow_redirects = False,
         )
     except Exception as ftrex:
-        message = "Internal server error"
-        int_msg = message + ": {}".format(ftrex)
+        message = "Internal server error when forwarding request to TIL"
+        int_msg = "{}".format(ftrex)
         raise IssuerException(message, int_msg, 500)
 
     return response

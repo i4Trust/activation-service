@@ -1,5 +1,7 @@
 FROM python:3.7-alpine
 
+LABEL org.opencontainers.image.source="https://github.com/i4Trust/activation-service"
+
 ENV AS_PORT=8080
 
 RUN apk update && \
